@@ -9,5 +9,18 @@
 import UIKit
 
 class ImageCell: UICollectionViewCell {
+    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var dateLabel: UILabel!
+    let formatter = NSDateFormatter()
     
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        formatter.dateFormat = "EEEE, dd MMM yyyy"
+    }
+    
+    var date: NSDate! {
+        didSet {
+            dateLabel.text = formatter.stringFromDate(date)
+        }
+    }
 }

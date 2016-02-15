@@ -49,6 +49,10 @@
                                     <constraint firstItem="Zas-y9-N6p" firstAttribute="trailing" secondItem="EXm-Jg-8Me" secondAttribute="trailingMargin" id="XUo-oR-QGE"/>
                                     <constraint firstItem="Zas-y9-N6p" firstAttribute="bottom" secondItem="EXm-Jg-8Me" secondAttribute="bottomMargin" id="d4x-EB-gGs"/>
                                 </constraints>
+                                <connections>
+                                    <outlet property="dateLabel" destination="Zas-y9-N6p" id="VwK-MQ-HjJ"/>
+                                    <outlet property="imageView" destination="H3K-Is-T9C" id="Giu-UW-KG8"/>
+                                </connections>
                             </collectionViewCell>
                         </cells>
                         <connections>
