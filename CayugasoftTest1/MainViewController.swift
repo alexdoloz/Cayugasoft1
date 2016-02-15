@@ -11,15 +11,25 @@ import UIKit
 private let reuseIdentifier = "Cell"
 
 class MainViewController: UICollectionViewController {
+
+    @IBAction func refresh(sender: AnyObject) {
+        images = []
+        loadImages()
+        collectionView!.reloadData()
+    }
+    
+    @IBAction func takePhoto(sender: AnyObject) {
+        
+    }
+    
     var images: [UIImage] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         loadImages()
     }
     
-//    func loadImageWithPath(path: String) -> UIImage? {
-//
-//    }
+    
     
     func loadImages() {
         let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first!
