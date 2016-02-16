@@ -21,6 +21,7 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
     
     func refreshImages() {
         images = []
+        dates = []
         loadImages()
         collectionView!.reloadData()
         collectionView!.scrollToItemAtIndexPath(NSIndexPath(forItem: images.count - 1, inSection: 0), atScrollPosition: .Bottom, animated: true)
@@ -40,7 +41,8 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         presentViewController(picker, animated: true, completion: nil)
     }
     
-    var images: [UIImage] = []
+    var images: [UIImage?] = []
+    var dates: [NSDate?] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,7 +57,8 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
     }
     
     func loadImages() {
-        guard let filePaths = try? NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath()) else {
+        let fm = NSFileManager.defaultManager()
+        guard let filePaths = try? fm.contentsOfDirectoryAtPath(documentsPath()) else {
             showLoadingError()
             return
         }
@@ -65,13 +68,11 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         }
         for jpegName in jpegs {
             let fullPath = (documentsPath() as NSString).stringByAppendingPathComponent(jpegName)
-            if let image = UIImage(contentsOfFile: fullPath) {
-                self.images.append(image)
-            } else {
-                // пока ничего
-            }
+            let attributes = try? fm.attributesOfItemAtPath(fullPath)
+            self.dates.append(attributes?[NSFileCreationDate] as? NSDate)
+            
+            self.images.append(UIImage(contentsOfFile: fullPath))
         }
-//        print(jpegs)
     }
     
 // MARK: Errors
@@ -130,14 +131,25 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
 
 
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of items
         return self.images.count
     }
 
     override func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! ImageCell
-        cell.date = NSDate()
-        cell.imageView.image = images[indexPath.item]
+        let item = indexPath.item
+        let date = dates[item]
+        let image = images[item]
+        if date != nil {
+            cell.date = date
+        } else {
+            cell.dateLabel.text = "???"
+        }
+        
+        if image != nil {
+            cell.imageView.image = image
+        } else {
+            cell.imageView.image = UIImage(named: "placeholder")
+        }
         decorate(cell)
         
         return cell

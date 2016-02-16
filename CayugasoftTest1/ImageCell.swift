@@ -20,7 +20,13 @@ class ImageCell: UICollectionViewCell {
     
     var date: NSDate! {
         didSet {
-            dateLabel.text = formatter.stringFromDate(date)
+            let dateString = formatter.stringFromDate(date)
+            let commaPosition = (dateString as NSString).rangeOfString(",").location
+            let boldRange = NSMakeRange(0, commaPosition)
+            let attributedString = NSMutableAttributedString(string: dateString)
+            let boldFont = UIFont.boldSystemFontOfSize(14.0)
+            attributedString.addAttribute(NSFontAttributeName, value:boldFont, range: boldRange)
+            dateLabel.attributedText = attributedString
         }
     }
 }
