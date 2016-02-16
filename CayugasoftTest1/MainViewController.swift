@@ -13,6 +13,7 @@ import AVFoundation
 
 private let reuseIdentifier = "Cell"
 
+
 class MainViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBAction func refresh(sender: AnyObject) {
@@ -23,8 +24,13 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         images = []
         dates = []
         loadImages()
+        updateCollectionView()
+    }
+    
+    func updateCollectionView() {
         collectionView!.reloadData()
         collectionView!.scrollToItemAtIndexPath(NSIndexPath(forItem: images.count - 1, inSection: 0), atScrollPosition: .Bottom, animated: true)
+
     }
     
     @IBAction func takePhoto(sender: AnyObject) {
@@ -76,7 +82,6 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
     }
     
 // MARK: Errors
-    
     func showLoadingError() {
         let alert = UIAlertController(title: "Ошибка загрузки", message: "Не удалось загрузить фото", preferredStyle: .Alert)
         alert.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
@@ -100,8 +105,6 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
     
 // MARK: UIImagePickerControllerDelegate
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-//        print(info)
-//        picker.
         guard let image = info[UIImagePickerControllerEditedImage] as? UIImage else { return }
         let imageName = (NSDate().description as NSString).stringByAppendingPathExtension("jpg")!
         let path = (documentsPath() as NSString).stringByAppendingPathComponent(imageName)
@@ -109,21 +112,14 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
             showSavingError()
         }
         dismissViewControllerAnimated(true) { [weak self] in
-            self?.refreshImages()
+            self?.images.append(image)
+            self?.dates.append(NSDate())
+            self?.updateCollectionView()
         }
     }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
-    }
-    */
-
-    // MARK: UICollectionViewDataSource
+ 
+// MARK: UICollectionViewDataSource
 
     override func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
         return 1
@@ -163,39 +159,6 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         layer.shadowRadius = 3
         layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: 0).CGPath
         layer.masksToBounds = false
-//        layer.shouldRasterize = true
         layer.shadowOpacity = 0.3
     }
-
-    // MARK: UICollectionViewDelegate
-
-    /*
-    // Uncomment this method to specify if the specified item should be highlighted during tracking
-    override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return true
-    }
-    */
-
-    /*
-    // Uncomment this method to specify if the specified item should be selected
-    override func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return true
-    }
-    */
-
-    /*
-    // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
-    override func collectionView(collectionView: UICollectionView, shouldShowMenuForItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return false
-    }
-
-    override func collectionView(collectionView: UICollectionView, canPerformAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool {
-        return false
-    }
-
-    override func collectionView(collectionView: UICollectionView, performAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) {
-    
-    }
-    */
-
 }
