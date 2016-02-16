@@ -7,33 +7,51 @@
 //
 
 import UIKit
+import MobileCoreServices
 
 private let reuseIdentifier = "Cell"
 
-class MainViewController: UICollectionViewController {
+class MainViewController: UICollectionViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
     @IBAction func refresh(sender: AnyObject) {
+        refreshImages()
+    }
+    
+    func refreshImages() {
         images = []
         loadImages()
         collectionView!.reloadData()
     }
     
     @IBAction func takePhoto(sender: AnyObject) {
-        
+        guard UIImagePickerController.isSourceTypeAvailable(.Camera) else {
+            showCameraError()
+            return
+        }
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.mediaTypes = [kUTTypeImage as String]
+        picker.allowsEditing = true
+        picker.sourceType = .Camera
+        presentViewController(picker, animated: true, completion: nil)
     }
     
     var images: [UIImage] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let layout = collectionView!.collectionViewLayout as! UICollectionViewFlowLayout
+        let side = self.view.bounds.size.width / 2 - 30
+        layout.itemSize = CGSize(width: side, height: side)
         loadImages()
     }
     
-    
+    func documentsPath() -> String {
+        return NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first!
+    }
     
     func loadImages() {
-        let documentsPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true).first!
-        guard let filePaths = try? NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath) else {
+        guard let filePaths = try? NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath()) else {
             showError()
             return
         }
@@ -42,7 +60,7 @@ class MainViewController: UICollectionViewController {
             return ext == "jpg" || ext == "jpeg"
         }
         for jpegName in jpegs {
-            let fullPath = (documentsPath as NSString).stringByAppendingPathComponent(jpegName)
+            let fullPath = (documentsPath() as NSString).stringByAppendingPathComponent(jpegName)
             if let image = UIImage(contentsOfFile: fullPath) {
                 self.images.append(image)
             } else {
@@ -54,6 +72,25 @@ class MainViewController: UICollectionViewController {
     
     func showError() {
     
+    }
+ 
+    func showCameraError() {
+    
+    }
+    
+// MARK: UIImagePickerControllerDelegate
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+//        print(info)
+//        picker.
+        guard let image = info[UIImagePickerControllerEditedImage] as? UIImage else { return }
+        let imageName = (NSDate().description as NSString).stringByAppendingPathExtension("jpg")!
+        let path = (documentsPath() as NSString).stringByAppendingPathComponent(imageName)
+        if (try? UIImageJPEGRepresentation(image, 1.0)?.writeToFile(path, options: [])) == nil {
+            print("error")
+        }
+        dismissViewControllerAnimated(true) {
+            self.refreshImages()
+        }
     }
 
     /*
