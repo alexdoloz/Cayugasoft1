@@ -8,6 +8,8 @@
 
 import UIKit
 import MobileCoreServices
+import AVFoundation
+
 
 private let reuseIdentifier = "Cell"
 
@@ -21,10 +23,12 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         images = []
         loadImages()
         collectionView!.reloadData()
+        collectionView!.scrollToItemAtIndexPath(NSIndexPath(forItem: images.count - 1, inSection: 0), atScrollPosition: .Bottom, animated: true)
     }
     
     @IBAction func takePhoto(sender: AnyObject) {
-        guard UIImagePickerController.isSourceTypeAvailable(.Camera) else {
+        let cameraAvailable = UIImagePickerController.isSourceTypeAvailable(.Camera) && AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo) == .Authorized
+        guard cameraAvailable else {
             showCameraError()
             return
         }
@@ -52,7 +56,7 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
     
     func loadImages() {
         guard let filePaths = try? NSFileManager.defaultManager().contentsOfDirectoryAtPath(documentsPath()) else {
-            showError()
+            showLoadingError()
             return
         }
         let jpegs = filePaths.filter {
@@ -70,12 +74,27 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
 //        print(jpegs)
     }
     
-    func showError() {
+// MARK: Errors
     
+    func showLoadingError() {
+        let alert = UIAlertController(title: "Ошибка загрузки", message: "Не удалось загрузить фото", preferredStyle: .Alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+        presentViewController(alert, animated: true, completion: nil)
     }
  
     func showCameraError() {
+        let alert = UIAlertController(title: "Камера не работает", message: "Возможно, у приложения нет разрешения использовать камеру. Перейдите в настройки, чтобы это исправить", preferredStyle: .Alert)
+        alert.addAction(UIAlertAction(title: "Настройки", style: .Default, handler: { action in
+            UIApplication.sharedApplication().openURL(NSURL(string: UIApplicationOpenSettingsURLString)!)
+        }))
+        alert.addAction(UIAlertAction(title: "Oтмена", style: .Cancel, handler: nil))
+        presentViewController(alert, animated: true, completion: nil)
+    }
     
+    func showSavingError() {
+        let alert = UIAlertController(title: "Ошибка сохранения", message: "Не удалось сохранить фото. Возможно, на устройстве закончилось место", preferredStyle: .Alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+        presentViewController(alert, animated: true, completion: nil)
     }
     
 // MARK: UIImagePickerControllerDelegate
@@ -86,10 +105,10 @@ class MainViewController: UICollectionViewController, UIImagePickerControllerDel
         let imageName = (NSDate().description as NSString).stringByAppendingPathExtension("jpg")!
         let path = (documentsPath() as NSString).stringByAppendingPathComponent(imageName)
         if (try? UIImageJPEGRepresentation(image, 1.0)?.writeToFile(path, options: [])) == nil {
-            print("error")
+            showSavingError()
         }
-        dismissViewControllerAnimated(true) {
-            self.refreshImages()
+        dismissViewControllerAnimated(true) { [weak self] in
+            self?.refreshImages()
         }
     }
 
